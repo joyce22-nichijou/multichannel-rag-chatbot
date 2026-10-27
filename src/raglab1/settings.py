@@ -16,5 +16,14 @@ class Settings(BaseSettings):
     chunks_path: Path = Path("data/processed/chunks.jsonl")
     vector_db_path: Path = Path("data/processed/vectors.db")
 
+    # Google AI Studio (Gemini). The key lives in .env, which is never committed.
+    google_api_key: str = ""
+    llm_model: str = "gemini-3.5-flash-lite"
+    # Free-tier quotas are low, so calls are spaced out
+    llm_requests_per_minute: int = 10
+
+    # Number of chunks given to the LLM for each question
+    retrieval_k: int = 5
+
 
 settings = Settings()
