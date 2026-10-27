@@ -35,3 +35,6 @@ data/tables/*.sqlite
 
 # Generated vector index: rebuilt by the index script
 *.db
+
+# Annotated copies of the code for study (local only)
+annotation/
