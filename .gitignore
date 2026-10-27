@@ -1,0 +1,37 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Secrets: never commit the Google AI Studio API key
+.env
+.env.*
+!.env.example
+
+# Tool caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Editor / OS files
+.obsidian/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Course material (not part of the project)
+Mini-Project/
+
+# Heavy source data: keep it out of the repo
+# (the data dictionary stays tracked)
+data/raw/*.pdf
+data/tables/*.sqlite
+
+# Generated vector index: rebuilt by the index script
+*.db
