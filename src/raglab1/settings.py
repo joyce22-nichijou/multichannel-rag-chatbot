@@ -32,5 +32,8 @@ class Settings(BaseSettings):
     sql_max_rows: int = 50
     sql_max_cell_length: int = 300
 
+    # Number of previous question/answer turns given to the LLM during a chat
+    chat_history_turns: int = 5
+
 
 settings = Settings()
