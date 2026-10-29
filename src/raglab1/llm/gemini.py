@@ -3,6 +3,7 @@ import time
 
 from google import genai
 from google.genai import types
+from pydantic import BaseModel
 
 from raglab1.settings import settings
 
@@ -22,13 +23,25 @@ class GeminiLLM:
         self._client = genai.Client(api_key=settings.google_api_key)
         self._model = model
 
-    def generate(self, prompt: str, system: str | None = None) -> str:
-        """Send one prompt and return the model's text answer."""
+    def generate(
+        self,
+        prompt: str,
+        system: str | None = None,
+        schema: type[BaseModel] | None = None,
+    ) -> str:
+        """Send one prompt and return the model's text answer.
+
+        With a schema, Gemini answers with JSON that follows this schema.
+        """
         _wait_for_rate_limit()
         response = self._client.models.generate_content(
             model=self._model,
             contents=prompt,
-            config=types.GenerateContentConfig(system_instruction=system),
+            config=types.GenerateContentConfig(
+                system_instruction=system,
+                response_mime_type="application/json" if schema else None,
+                response_schema=schema,
+            ),
         )
         return response.text or ""
 
