@@ -25,5 +25,12 @@ class Settings(BaseSettings):
     # Number of chunks given to the LLM for each question
     retrieval_k: int = 5
 
+    # SQL channel: the unit database and its documentation, given to the LLM
+    sql_db_path: Path = Path("data/tables/wahadb.sqlite")
+    sql_dictionary_path: Path = Path("data/tables/SQL_AGENT_DATA_DICTIONARY.md")
+    # Limits on the query result put in the prompt
+    sql_max_rows: int = 50
+    sql_max_cell_length: int = 300
+
 
 settings = Settings()
