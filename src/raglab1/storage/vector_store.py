@@ -11,7 +11,9 @@ class VectorStore:
 
     def __init__(self, db_path: Path) -> None:
         db_path.parent.mkdir(parents=True, exist_ok=True)
-        self._conn = sqlite3.connect(db_path)
+        # check_same_thread=False: with the route "both", LangGraph runs the retrieval
+        # nodes in other threads. Only one node uses this connection at a time.
+        self._conn = sqlite3.connect(db_path, check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
         self._conn.enable_load_extension(True)
         sqlite_vec.load(self._conn)

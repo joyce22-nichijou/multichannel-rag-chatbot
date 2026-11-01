@@ -1,7 +1,7 @@
 [project]
 name = "raglab1"
 version = "0.1.0"
-description = "Add your description here"
+description = "Multi-channel RAG chatbot (Core Rules PDF + SQLite unit database) for Warhammer 40,000"
 readme = "README.md"
 authors = [
     { name = "Lezhi ZHANG", email = "joycezhang815@gmail.com" }
@@ -16,9 +16,6 @@ dependencies = [
     "sentence-transformers>=6.2.0",
     "sqlite-vec>=0.1.9",
 ]
-
-[project.scripts]
-raglab1 = "raglab1:main"
 
 [build-system]
 requires = ["uv_build>=0.12.16,<0.13.0"]

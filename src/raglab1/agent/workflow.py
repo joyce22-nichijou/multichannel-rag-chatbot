@@ -15,6 +15,8 @@ def build_agent(
 
     START -> plan -> retrieve_rules ----> answer -> END
                   -> retrieve_database -> answer
+                  -> retrieve_rules and retrieve_database in parallel (route "both")
+                     -> answer
                   -> answer                (route "other": no retrieval)
     """
     nodes = ChatNodes(llm, text_retriever, sql_retriever)
@@ -26,6 +28,7 @@ def build_agent(
     graph.add_node("answer", nodes.answer)
 
     graph.add_edge(START, "plan")
+    # choose_route returns ["rules", "database"] for the route "both": both nodes run
     graph.add_conditional_edges(
         "plan",
         choose_route,

@@ -20,6 +20,8 @@ Rules:
 - datasheets.role is always empty. Unit types such as Character, Infantry, Vehicle or
   Monster are stored as keywords in datasheets_keywords.keyword.
 - Use SELECT DISTINCT when joins can repeat rows, and select only the columns needed.
+- When the result is about units, also select the unit name (datasheets.name), so that
+  the answer can cite it.
 - Add LIMIT 50 unless the question asks for a count.
 
 Database documentation:
@@ -58,7 +60,11 @@ class SqlRetriever:
         self._max_cell_length = max_cell_length
         # mode=ro: the connection cannot modify the database, whatever the query is.
         # as_uri() also escapes the "#" characters of the project path.
-        self._conn = sqlite3.connect(f"{db_path.resolve().as_uri()}?mode=ro", uri=True)
+        # check_same_thread=False: with the route "both", LangGraph runs this node in
+        # another thread than the one that created the connection.
+        self._conn = sqlite3.connect(
+            f"{db_path.resolve().as_uri()}?mode=ro", uri=True, check_same_thread=False
+        )
 
     def retrieve(self, question: str) -> SqlResult:
         """Generate a query, run it, and retry once with the error if it fails."""

@@ -1,5 +1,6 @@
 from typing import Literal
 
+from langgraph.types import Overwrite
 from pydantic import BaseModel, Field
 
 from raglab1.agent.state import ChatState
@@ -11,7 +12,7 @@ from raglab1.retriever.text_retriever import TextRetriever
 from raglab1.settings import settings
 
 PLAN_PROMPT = """You are the first step of a chatbot about the Warhammer 40,000 tabletop game.
-Read the conversation and the user's latest message, then fill in three fields.
+Read the conversation and the user's latest message, then fill in four fields.
 
 question: the latest message rewritten as one complete, standalone question in English.
 Use the conversation to replace references such as "it" or "this unit" by what they mean.
@@ -20,22 +21,33 @@ language: the language the answer must be written in. This is the language of th
 message, unless the user explicitly asks for another one: for "Traduis ta réponse en
 anglais" (French for "translate your answer into English"), the language is English.
 
-route:
-- "rules": how the game is played (phases, actions, combat, terrain, keywords, missions),
-  answered from the Core Rules book.
-- "database": data about specific units, factions, weapons, abilities, stratagems,
-  enhancements, points or characteristics (toughness, save, wounds...), answered from
-  the unit database.
-- "other": greetings, thanks, questions unrelated to Warhammer 40,000, and requests about
-  the conversation itself, such as translating or summarising a previous answer."""
+needs_rulebook: true if the answer needs a rule of the game from the Core Rules book: how
+the game is played (phases, moving, Advancing, shooting, charging, fighting, terrain,
+keywords, missions...).
+
+needs_database: true if the answer needs data about a specific, named unit or faction
+from the unit database: its characteristics (Move, toughness, save, wounds...), weapons,
+abilities, keywords, stratagems, enhancements or points. A rules question that only
+mentions a type of unit (Vehicle, Monster, Infantry...) does not need the database.
+
+Decide the two fields separately: a question can need both, e.g. "What is the Move of the
+Intercessor Squad, and how far can it move when it Advances?" (its Move from the database,
+the Advance rule from the book). Both are false for greetings, thanks, questions
+unrelated to Warhammer 40,000, and requests about the conversation itself, such as
+translating or summarising a previous answer."""
 
 ANSWER_PROMPT = """You are a chatbot that answers questions about the Warhammer 40,000 tabletop game.
 Always answer in {language}.
 
 When evidence is given:
 - Use ONLY the evidence, not your own memory of the game: it may be outdated or wrong.
-- If the evidence does not contain the answer, say that you could not find it. Do not guess.
-- Cite your sources: the page for the rulebook, e.g. (p. 55), or "unit database".
+- If the evidence does not cover a part of the question, say that you could not find that
+  part. Do not complete it from memory and do not guess.
+- If the evidence contains both rulebook passages and database results, combine them:
+  take the unit's data from the database and apply the rules of the rulebook to it.
+- Cite your sources: the page for the rulebook, e.g. (p. 55), and the unit's name for the
+  database, e.g. (unit database: Intercessor Squad). Only cite pages and units that
+  appear in the evidence.
 
 When no evidence is given, the message is small talk or a request about the conversation,
 for example a translation: answer it using the conversation. If it is a question unrelated
@@ -49,7 +61,23 @@ class Plan(BaseModel):
         description="The latest message as a standalone English question."
     )
     language: str = Field(description="The language the answer must be written in.")
-    route: Literal["rules", "database", "other"]
+    needs_rulebook: bool = Field(
+        description="True if the answer needs a rule from the Core Rules book."
+    )
+    needs_database: bool = Field(
+        description="True if the answer needs data about a specific unit or faction."
+    )
+
+    @property
+    def route(self) -> Literal["rules", "database", "both", "other"]:
+        """The route deduced from the two yes/no answers."""
+        if self.needs_rulebook and self.needs_database:
+            return "both"
+        if self.needs_rulebook:
+            return "rules"
+        if self.needs_database:
+            return "database"
+        return "other"
 
 
 def format_history(messages: list, turns: int) -> str:
@@ -91,9 +119,10 @@ class ChatNodes:
             "question": plan.question,
             "language": plan.language,
             "route": plan.route,
-            # Reset the evidence, so that nothing is left over from the previous turn
-            "contexts": [],
-            "sources": [],
+            # Empty the evidence lists, so that nothing is left over from the previous
+            # turn. Overwrite replaces the value instead of adding to it (operator.add)
+            "contexts": Overwrite([]),
+            "sources": Overwrite([]),
         }
 
     def retrieve_rules(self, state: ChatState) -> dict:
@@ -137,6 +166,11 @@ class ChatNodes:
         return {"answer": answer, "messages": [("assistant", answer)]}
 
 
-def choose_route(state: ChatState) -> str:
-    """Tell the conditional edge which node comes after the plan step."""
+def choose_route(state: ChatState) -> str | list[str]:
+    """Tell the conditional edge which node(s) come after the plan step.
+
+    For "both", the two retrieval nodes run in parallel, then the answer node runs once.
+    """
+    if state["route"] == "both":
+        return ["rules", "database"]
     return state["route"]
