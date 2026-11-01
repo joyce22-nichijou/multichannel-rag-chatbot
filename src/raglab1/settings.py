@@ -35,5 +35,10 @@ class Settings(BaseSettings):
     # Number of previous question/answer turns given to the LLM during a chat
     chat_history_turns: int = 5
 
+    # Evaluation (RAGAS): generated test set, agent answers and scores, kept in git
+    testset_path: Path = Path("data/eval/testset.jsonl")
+    eval_answers_path: Path = Path("data/eval/answers.jsonl")
+    eval_results_path: Path = Path("data/eval/results.csv")
+
 
 settings = Settings()
