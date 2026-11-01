@@ -1,5 +1,7 @@
 # Warhammer 40,000 Multi-Channel RAG Chatbot
 
+## By: Yao Liu and Lezhi Zhang
+
 A terminal chatbot that answers questions about the Warhammer 40,000 tabletop game from two sources: the **Core Rules book** (60-page PDF), searched with embeddings, and a **SQLite database of units** (`wahadb.sqlite`: datasheets, characteristics, weapons, abilities, keywords, stratagems, points...), queried with SQL written by the LLM. For each message, a LangGraph agent chooses the source, remembers the conversation, answers in the user's language and cites its sources.
 
 Course project RAGLAB1 (Retrieval-Augmented Generation). The key design choices, the problems we met and the evaluation results are in **[REPORT.md](REPORT.md)**.
