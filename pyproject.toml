@@ -4,8 +4,9 @@ version = "0.1.0"
 description = "Multi-channel RAG chatbot (Core Rules PDF + SQLite unit database) for Warhammer 40,000"
 readme = "README.md"
 authors = [
-    { name = "Lezhi ZHANG", email = "joycezhang815@gmail.com" }
-]
+    { name = "Lezhi ZHANG", email = "joycezhang815@gmail.com" },
+    { name = "Yao LIU", email = "liuyasmine4@gmail.com" }
+    ]
 requires-python = ">=3.13"
 dependencies = [
     "docling>=2.128.0",
